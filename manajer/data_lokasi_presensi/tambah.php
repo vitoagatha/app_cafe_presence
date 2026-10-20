@@ -3,9 +3,9 @@
 session_start();
 ob_start();
 if(!isset($_SESSION["login"])){
-  header("Location: ../../auth/login.php?pesan=belum_login");
+  header("Location: ../../auth/login.php?pesan=belum_login"); exit;
 }else if($_SESSION["role"] != 'manajer'){
-  header("Location: ../../auth/login.php?pesan=akses_ditolak");
+  header("Location: ../../auth/login.php?pesan=akses_ditolak"); exit;
 }
 
 $judul = "Tambah Lokasi Presensi";
@@ -97,7 +97,7 @@ if(isset($_POST['submit'])){
                             } ?> value="Pusat">Pusat</option>
                             <option <?php if(isset($_POST['tipe_lokasi']) && $_POST['tipe_lokasi'] == 'Cabang'){
                                 echo 'Selected';
-                            } ?>value="Cabang">Cabang</option>
+                            } ?> value="Cabang">Cabang</option>
                         </select>
                     </div>
 
@@ -128,7 +128,7 @@ if(isset($_POST['submit'])){
                             } ?> value="WIB">WIB</option>
                             <option <?php if(isset($_POST['zona_waktu']) && $_POST['zona_waktu'] == 'WITA'){
                                 echo 'Selected';
-                            } ?>value="WITA">WITA</option>
+                            } ?> value="WITA">WITA</option>
                             <option <?php if(isset($_POST['zona_waktu']) && $_POST['zona_waktu'] == 'WIT'){
                                 echo 'Selected';
                             } ?> value="WIT">WIT</option>

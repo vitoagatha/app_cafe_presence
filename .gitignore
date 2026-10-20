@@ -1,0 +1,15 @@
+config.php
+
+# Upload pengguna / foto presensi (data pribadi)
+assets/img/foto_pegawai/*
+assets/file_ketidakhadiran/*
+pegawai/presensi/foto/*
+manajer/presensi/foto/*
+!.gitkeep
+
+# Editor dan OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log

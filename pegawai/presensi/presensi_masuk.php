@@ -19,9 +19,9 @@
 ob_start();
 session_start();
 if (!isset($_SESSION["login"])) {
-  header("Location: ../../auth/login.php?pesan=belum_login");
+  header("Location: ../../auth/login.php?pesan=belum_login"); exit;
 } else if ($_SESSION["role"] != 'pegawai') {
-  header("Location: ../../auth/login.php?pesan=akses_ditolak");
+  header("Location: ../../auth/login.php?pesan=akses_ditolak"); exit;
 }
 
 $judul = 'Presensi Masuk';
@@ -96,8 +96,7 @@ if ($jarak_meter > $radius) { ?>
     </div>
   </div>
 
-  <script src="webcam.js"></script>
-  <script language="JavaScript">
+    <script language="JavaScript">
     Webcam.set({
       width: 320,
       height: 240,
@@ -116,23 +115,41 @@ if ($jarak_meter > $radius) { ?>
       let jam_masuk = document.getElementById('jam_masuk').value;
 
       Webcam.snap(function(data_uri) {
+        document.getElementById('my_result').innerHTML = '<img src="' + data_uri + '"/>';
+        var btn = document.getElementById('ambil-foto');
+        btn.disabled = true;
+        btn.innerText = 'Menyimpan...';
+
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
-          document.getElementById('my_result').innerHTML = '<img src="' + data_uri + '"/>';
-          if (xhttp.readyState == 4 && xhttp.status == 200) {
-            window.location.href = '../home/home.php';
+          if (xhttp.readyState != 4) return;
+
+          var hasil = null;
+          try { hasil = JSON.parse(xhttp.responseText); } catch (e) {}
+
+          if (xhttp.status == 200 && hasil && hasil.status == 'ok') {
+            window.location.href = '../home/home.php'; // notif sukses tampil di home (SweetAlert)
+          } else {
+            btn.disabled = false;
+            btn.innerText = 'Masuk';
+            Swal.fire({
+              icon: 'error',
+              title: 'Presensi gagal',
+              text: (hasil && hasil.pesan) ? hasil.pesan : 'Server error (HTTP ' + xhttp.status + ')'
+            });
+            console.error(xhttp.status, xhttp.responseText);
           }
         };
-        xhttp.open("POST", "Presensi_masuk_aksi.php", true);
+        xhttp.open("POST", "presensi_masuk_aksi.php", true);
         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         xhttp.send(
           'photo=' + encodeURIComponent(data_uri) +
-          '&id=' + id +
-          '&tanggal_masuk=' + tanggal_masuk +
-          '&jam_masuk=' + jam_masuk
+          '&id=' + encodeURIComponent(id) +
+          '&tanggal_masuk=' + encodeURIComponent(tanggal_masuk) +
+          '&jam_masuk=' + encodeURIComponent(jam_masuk)
         );
       });
-    }); 
+    });
 
     // map leaflet js
     // Latitude dan Longitude Kantor

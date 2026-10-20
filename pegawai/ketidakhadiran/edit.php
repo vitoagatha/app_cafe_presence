@@ -2,9 +2,9 @@
 ob_start();
 session_start();
 if (!isset($_SESSION["login"])) {
-    header("Location: ../../auth/login.php?pesan=belum_login");
+    header("Location: ../../auth/login.php?pesan=belum_login"); exit;
 } else if ($_SESSION["role"] != 'pegawai') {
-    header("Location: ../../auth/login.php?pesan=akses_ditolak");
+    header("Location: ../../auth/login.php?pesan=akses_ditolak"); exit;
 }
 
 $judul = 'Edit Pengajuan Ketidakhadiran';
@@ -19,6 +19,7 @@ if (isset($_POST['update'])) {
 
     if($_FILES['file_baru']['error'] === 4){
         $file_lama = $_POST['file_lama'];
+        $nama_file = $file_lama; // tanpa file baru, pertahankan file lama (sebelumnya jadi kosong)
     }else {
         $file = $_FILES['file_baru'];
         $nama_file = $file['name'];
@@ -30,7 +31,6 @@ if (isset($_POST['update'])) {
         $ektensi_diizinkan = ["jpg", "png", "jpeg", "pdf"];
         $max_ukuran_file = 10 * 1024 * 1024;
 
-        move_uploaded_file($file_tmp, $file_direktori);
     }
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -57,8 +57,12 @@ if (isset($_POST['update'])) {
         if (!empty($pesan_kesalahan)) {
             $_SESSION['validasi'] = implode("<br>", $pesan_kesalahan);
         } else {
+            if ($_FILES['file_baru']['error'] != 4) {
+                $nama_file = time() . '_' . bin2hex(random_bytes(3)) . '.' . strtolower($ambil_ekstensi);
+                move_uploaded_file($file_tmp, "../../assets/file_ketidakhadiran/" . $nama_file);
+            }
             $result = mysqli_query($connection, "UPDATE ketidakhadiran SET keterangan = '$keterangan', deskripsi='$deskripsi', 
-            tanggal = '$tanggal', file = '$nama_file' WHERE id = '$id'");
+            tanggal = '$tanggal', file = '$nama_file' WHERE id = '$id' AND id_pegawai = '{$_SESSION['id']}'");
 
             $_SESSION['berhasil'] = 'Data berhasil disimpan';
             header("Location: ketidakhadiran.php");
@@ -67,8 +71,8 @@ if (isset($_POST['update'])) {
     }
 }
 
-$id = $_GET['id'];
-$result = mysqli_query($connection, "SELECT * FROM ketidakhadiran WHERE  id=$id");
+$id = (int) $_GET['id'];
+$result = mysqli_query($connection, "SELECT * FROM ketidakhadiran WHERE id=$id AND id_pegawai = '{$_SESSION['id']}'");
 while ($data = mysqli_fetch_array($result)) {
     $keterangan = $data['keterangan'];
     $deskripsi = $data['deskripsi'];
@@ -94,10 +98,10 @@ while ($data = mysqli_fetch_array($result)) {
                                     } ?> value="Cuti">Cuti</option>
                             <option <?php if ($keterangan == 'Izin') {
                                         echo 'selected';
-                                    } ?>value="Izin">Izin</option>
+                                    } ?> value="Izin">Izin</option>
                             <option <?php if ($keterangan == 'Sakit') {
                                         echo 'selected';
-                                    } ?>value="Sakit">Sakit</option>
+                                    } ?> value="Sakit">Sakit</option>
                         </select>
                         <div class="mb-3">
                             <label for="">Deskripsi</label>

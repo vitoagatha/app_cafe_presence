@@ -3,9 +3,9 @@
 session_start();
 ob_start();
 if(!isset($_SESSION["login"])){
-  header("Location: ../../auth/login.php?pesan=belum_login");
+  header("Location: ../../auth/login.php?pesan=belum_login"); exit;
 }else if($_SESSION["role"] != 'manajer'){
-  header("Location: ../../auth/login.php?pesan=akses_ditolak");
+  header("Location: ../../auth/login.php?pesan=akses_ditolak"); exit;
 }
 
 $judul = "Data Pegawai";

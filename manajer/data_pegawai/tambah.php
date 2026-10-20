@@ -3,9 +3,9 @@
 session_start();
 ob_start();
 if(!isset($_SESSION["login"])){
-  header("Location: ../../auth/login.php?pesan=belum_login");
+  header("Location: ../../auth/login.php?pesan=belum_login"); exit;
 }else if($_SESSION["role"] != 'manajer'){
-  header("Location: ../../auth/login.php?pesan=akses_ditolak");
+  header("Location: ../../auth/login.php?pesan=akses_ditolak"); exit;
 }
 
 $judul = "Tambah Pegawai";
@@ -27,6 +27,11 @@ if(isset($_POST['submit'])){
     $status = htmlspecialchars($_POST['status']);
     $lokasi_presensi = htmlspecialchars($_POST['lokasi_presensi']);
 
+    $pesan_kesalahan = [];
+    $nama_file = '';
+    $file_tmp = '';
+    $ambil_ekstensi = '';
+    $ukuran_file = 0;
     if(isset($_FILES['foto'])){
         $file = $_FILES['foto'];
         $nama_file = $file['name'];
@@ -38,7 +43,6 @@ if(isset($_POST['submit'])){
         $ektensi_diizinkan = ["jpg", "png", "jpeg"];
         $max_ukuran_file = 10 * 1024 * 1024;
 
-        move_uploaded_file($file_tmp, $file_direktori);
     }
 
     if($_SERVER["REQUEST_METHOD"] == "POST"){
@@ -59,6 +63,15 @@ if(isset($_POST['submit'])){
         }
         if(empty($username)){
             $pesan_kesalahan[] = "<i class='fa-solid fa-check'></i>Username wajib diisi";
+        }
+        if(!empty($username)){
+            $cek_user = mysqli_prepare($connection, "SELECT id FROM users WHERE username = ?");
+            mysqli_stmt_bind_param($cek_user, "s", $username);
+            mysqli_stmt_execute($cek_user);
+            mysqli_stmt_store_result($cek_user);
+            if(mysqli_stmt_num_rows($cek_user) > 0){
+                $pesan_kesalahan[] = "<i class='fa-solid fa-check'></i>Username sudah dipakai";
+            }
         }
         if(empty($role)){
             $pesan_kesalahan[] = "<i class='fa-solid fa-check'></i>Role wajib diisi";
@@ -85,9 +98,17 @@ if(isset($_POST['submit'])){
             $pesan_kesalahan[] = "<i class='fa-solid fa-check'></i>Ukuran file melebihi: 10Mb";
         }
 
+        if(is_uploaded_file($file_tmp) && @getimagesize($file_tmp) === false){
+            $pesan_kesalahan[] = "<i class='fa-solid fa-check'></i>File bukan gambar yang valid";
+        }
+
         if(!empty($pesan_kesalahan)){
             $_SESSION['validasi'] = implode("<br>" , $pesan_kesalahan);
         }else{
+            // file dipindahkan HANYA setelah semua validasi lolos, dengan nama unik
+            $nama_file = 'pegawai_' . time() . '_' . bin2hex(random_bytes(3)) . '.' . strtolower($ambil_ekstensi);
+            move_uploaded_file($file_tmp, "../../assets/img/foto_pegawai/" . $nama_file);
+
             $pegawai = mysqli_query($connection, "INSERT INTO pegawai(nip, nama, jenis_kelamin,
             alamat, no_handphone, jabatan, lokasi_presensi, foto) VALUES ('$nip', '$nama', '$jenis_kelamin', '$alamat',
             '$no_handphone', '$jabatan', '$lokasi_presensi', '$nama_file')");
@@ -151,7 +172,7 @@ if(isset($_POST['submit'])){
                             } ?> value="Laki-laki">Laki-laki</option>
                             <option <?php if(isset($_POST['status']) && $_POST['status'] == 'Perempuan'){
                                 echo 'Selected';
-                            } ?>value="Perempuan">Perempuan</option>
+                            } ?> value="Perempuan">Perempuan</option>
                         </select>
                     </div>
 
@@ -197,7 +218,7 @@ if(isset($_POST['submit'])){
                             } ?> value="Aktif">Aktif</option>
                             <option <?php if(isset($_POST['status']) && $_POST['status'] == 'Tidak Aktif'){
                                 echo 'Selected';
-                            } ?>value="Tidak Aktif">Tidak Aktif</option>
+                            } ?> value="Tidak Aktif">Tidak Aktif</option>
                         </select>
                     </div>
                         
@@ -226,10 +247,10 @@ if(isset($_POST['submit'])){
                             } ?> value="admin">Admin</option>
                             <option <?php if(isset($_POST['role']) && $_POST['role'] == 'manajer'){
                                 echo 'Selected';
-                            } ?>value="manajer">Manajer</option>
+                            } ?> value="manajer">Manajer</option>
                             <option <?php if(isset($_POST['role']) && $_POST['role'] == 'pegawai'){
                                 echo 'Selected';
-                            } ?>value="pegawai">Pegawai</option>
+                            } ?> value="pegawai">Pegawai</option>
                         </select>
                     </div>
 

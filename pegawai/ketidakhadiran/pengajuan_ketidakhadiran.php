@@ -2,9 +2,9 @@
 ob_start();
 session_start();
 if (!isset($_SESSION["login"])) {
-  header("Location: ../../auth/login.php?pesan=belum_login");
+  header("Location: ../../auth/login.php?pesan=belum_login"); exit;
 } else if ($_SESSION["role"] != 'pegawai') {
-  header("Location: ../../auth/login.php?pesan=akses_ditolak");
+  header("Location: ../../auth/login.php?pesan=akses_ditolak"); exit;
 }
 
 $judul = 'Pengajuan Ketidakhadiran';
@@ -12,7 +12,7 @@ include('../layout/header.php');
 include_once("../../config.php");
 
 if (isset($_POST['submit'])) {
-  $id = $_POST['id_pegawai'];
+  $id = $_SESSION['id']; // id dari session, bukan dari form
   $keterangan = $_POST['keterangan'];
   $tanggal = $_POST['tanggal'];
   $deskripsi = $_POST['deskripsi'];
@@ -29,7 +29,6 @@ if (isset($_POST['submit'])) {
     $ektensi_diizinkan = ["jpg", "png", "jpeg", "pdf"];
     $max_ukuran_file = 10 * 1024 * 1024;
 
-    move_uploaded_file($file_tmp, $file_direktori);
   }
 
   if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -44,7 +43,7 @@ if (isset($_POST['submit'])) {
     }
 
     if (!in_array(strtolower($ambil_ekstensi), $ektensi_diizinkan)) {
-      $pesan_kesalahan[] = "<i class='fa-solid fa-check'></i>Hanya file JPG, JPEG, dan PNG yang diizinkan";
+      $pesan_kesalahan[] = "<i class='fa-solid fa-check'></i>Hanya file JPG, JPEG, PNG, dan PDF yang diizinkan";
     }
 
     if ($ukuran_file > $max_ukuran_file) {
@@ -54,6 +53,8 @@ if (isset($_POST['submit'])) {
     if (!empty($pesan_kesalahan)) {
       $_SESSION['validasi'] = implode("<br>", $pesan_kesalahan);
     } else {
+      $nama_file = time() . '_' . bin2hex(random_bytes(3)) . '.' . strtolower($ambil_ekstensi);
+      move_uploaded_file($file_tmp, "../../assets/file_ketidakhadiran/" . $nama_file);
       $result = mysqli_query($connection, "INSERT INTO ketidakhadiran(id_pegawai, keterangan, deskripsi,
         tanggal, status_pengajuan, file) VALUES ('$id', '$keterangan', '$deskripsi', '$tanggal',
         '$status_pengajuan', '$nama_file')");
@@ -87,10 +88,10 @@ $result = mysqli_query($connection, "SELECT * FROM ketidakhadiran WHERE id_pegaw
                       } ?> value="Cuti">Cuti</option>
               <option <?php if (isset($_POST['keterangan']) && $_POST['keterangan'] == 'Izin') {
                         echo 'Selected';
-                      } ?>value="Izin">Izin</option>
+                      } ?> value="Izin">Izin</option>
               <option <?php if (isset($_POST['keterangan']) && $_POST['keterangan'] == 'Sakit') {
                         echo 'Selected';
-                      } ?>value="Sakit">Sakit</option>
+                      } ?> value="Sakit">Sakit</option>
             </select>
             <div class="mb-3">
               <label for="">Deskripsi</label>

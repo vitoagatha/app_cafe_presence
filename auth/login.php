@@ -102,7 +102,7 @@ if (isset($_POST["login"])) {
 
                         <div class="card card-md">
                             <div class="card-body">
-                                <h2 class="h2 text-center mb-4">Login to your account</h2>
+                                <h1 class="h1 text-center mb-3">Cafe Presense</h1>
                                 <form action="" method="POST" autocomplete="off" novalidate>
                                     <div class="mb-3">
                                         <label class="form-label">Username</label>
@@ -156,7 +156,7 @@ if (isset($_POST["login"])) {
     <!-- Sweet Alert -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <?php if($_SESSION['gagal']) { ?>
+    <?php if(!empty($_SESSION['gagal'])) { ?>
         <script>
             Swal.fire({
                 icon: "error",

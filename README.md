@@ -1,4 +1,4 @@
-# app_cafe_presence# CafePresence
+CafePresence
 
 Aplikasi presensi pegawai berbasis web untuk cafe. Pegawai melakukan presensi masuk dan keluar dengan **foto selfie** dan **validasi lokasi (GPS)**, sedangkan admin dan manajer mengelola data pegawai serta memantau rekap kehadiran.
 
